@@ -2,12 +2,15 @@ import React, { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
+import { auth } from "../../firebase";
 import {
   addExpenditureItem,
   updateExpenditureItem,
   removeExpenditureItem,
   listenExpenditureItems,
   saveHotelTotal,
+  updateExpenditureName,
+  updateExpenditureCategory,
 } from "../../dbcon";
 
 /** --- helpers --- */
@@ -92,6 +95,13 @@ export default function ExpenditureDetails() {
   const [updatedAmount, setUpdatedAmount] = useState("");
   const [updatedEntryDate, setUpdatedEntryDate] = useState("");
   const [nowTime, setNowTime] = useState(new Date().toLocaleTimeString());
+  const [isHotelTotalSaved, setIsHotelTotalSaved] = useState(false);
+  // 🔹 Modal States
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [showRemoveModal, setShowRemoveModal] = useState(false);
+  const [modalType, setModalType] = useState(""); // "item" | "qty" | "category"
+  const [modalValue, setModalValue] = useState(""); // current name/qty/category
+  const [newValue, setNewValue] = useState(""); // entered in modal
 
   useEffect(() => {
     const t = setInterval(
@@ -117,9 +127,15 @@ export default function ExpenditureDetails() {
 
   // 🔗 Sync items from Firebase
   useEffect(() => {
-    const unsubscribe = listenExpenditureItems((list) => {
-      setItems(list);
+    // Subscribe to auth state
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        // Only call DB functions if user exists
+        listenExpenditureItems((list) => setItems(list));
+        // Similarly, you can listen hotel totals, etc.
+      }
     });
+
     return () => unsubscribe();
   }, []);
 
@@ -141,6 +157,12 @@ export default function ExpenditureDetails() {
     if (!selectedId) return;
     await removeExpenditureItem(selectedId);
     setSelectedId("");
+    if (!selectedId) return;
+    const item = items.find((it) => it.id === selectedId);
+    setModalType("item");
+    setModalValue(item?.name || "");
+    setNewValue("");
+    setShowRenameModal(true);
   };
 
   const handleRenameItem = async () => {
@@ -157,6 +179,14 @@ export default function ExpenditureDetails() {
         name: newName,
       });
     });
+
+    if (!selectedId) return;
+    // eslint-disable-next-line no-const-assign
+    item = items.find((it) => it.id === selectedId);
+    setModalType("item");
+    setModalValue(item?.name || "");
+    setNewValue("");
+    setShowRenameModal(true);
   };
 
   const handleRenameQty = async () => {
@@ -207,7 +237,7 @@ export default function ExpenditureDetails() {
       amount: Number(totalAmount),
       entryDate,
     });
-    alert("Hotel Total saved successfully!");
+    setIsHotelTotalSaved(true);
   };
 
   const updateHotelTotal = async () => {
@@ -295,31 +325,6 @@ export default function ExpenditureDetails() {
               >
                 <i className="fas fa-plus me-2"></i> Add Item
               </button>
-
-              {items.length > 0 && (
-                <div
-                  className="border rounded p-2"
-                  style={{ maxHeight: "150px", overflowY: "auto" }}
-                >
-                  <ul className="list-group list-group-flush">
-                    {items.map((it) => (
-                      <li
-                        key={it.id}
-                        className="list-group-item d-flex justify-content-between"
-                      >
-                        <span>
-                          {it.name}{" "}
-                          <span className="badge bg-info">{it.category}</span> ×{" "}
-                          {it.qty}
-                        </span>
-                        <span className="fw-bold text-success">
-                          ₹{it.price}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -346,6 +351,7 @@ export default function ExpenditureDetails() {
                       placeholder="Total Amount"
                       value={totalAmount}
                       onChange={(e) => setTotalAmount(e.target.value)}
+                      disabled={isHotelTotalSaved}
                     />
                     <label>Total Amount</label>
                   </div>
@@ -438,11 +444,11 @@ export default function ExpenditureDetails() {
           {/* Hotel Total Sell Display (span full right side) */}
           <div className="card shadow-sm rounded-3 p-3 text-center flex-grow-1 d-flex align-items-center justify-content-center">
             {totalAmount ? (
-              <h5 className="mb-0 fw-bold text-primary">
+              <h5 className="mb-0 fw-bold text-danger">
                 Hotel total sell {thisMonthLabel}: ₹ {totalAmount}
               </h5>
             ) : (
-              <h5 className="mb-0 fw-bold text-primary">
+              <h5 className="mb-0 fw-bold text-danger">
                 Hotel total sell {thisMonthLabel} will display at this place
               </h5>
             )}
@@ -591,6 +597,198 @@ export default function ExpenditureDetails() {
                   onClick={handleRemoveCategory}
                 >
                   <i className="bi bi-trash-fill me-1"></i> Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/*Expenditure Summary table*/}
+      <div className="card shadow-sm rounded-3 mt-5">
+        <div className="card-body">
+          <h5 className="fw-bold mb-4 text-center text-primary">
+            Expenditure Summary
+          </h5>
+          <table className="table table-striped">
+            <thead>
+              <tr>
+                <th>SL No.</th>
+                <th>Item Name</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it, i) => (
+                <tr key={it.id}>
+                  <td>{i + 1}</td>
+                  <td>{it.name}</td>
+                  <td>{it.category}</td>
+                  <td>{it.quantity}</td>
+                  <td>₹{it.price}</td>
+                  <td>₹{it.total}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan="5" className="text-end fw-bold">
+                  Total Expenditure:
+                </td>
+                <td className="fw-bold text-danger">
+                  ₹{items.reduce((sum, it) => sum + (it.total || 0), 0)}
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        {/* 🔹 Rename Modal */}
+        <div
+          className={`modal fade ${showRenameModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Rename {modalType}</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowRenameModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Your current {modalType} is <b>{modalValue}</b>
+                </p>
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Enter new value"
+                  value={newValue}
+                  onChange={(e) => setNewValue(e.target.value)}
+                />
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRenameModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={async () => {
+                    if (!newValue) return;
+                    if (modalType === "item") {
+                      await updateExpenditureName(selectedId, newValue);
+                    }
+                    if (modalType === "category") {
+                      await updateExpenditureCategory(
+                        selectedCategory,
+                        newValue
+                      );
+                    }
+                    setShowRenameModal(false);
+                  }}
+                >
+                  Save changes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 🔹 Remove Modal */}
+        <div
+          className={`modal fade ${showRemoveModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowRemoveModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to delete <b>{modalValue}</b>?
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRemoveModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={async () => {
+                    if (modalType === "item") {
+                      await removeExpenditureItem(selectedId);
+                    }
+                    setShowRemoveModal(false);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* 🔹 Remove Modal */}
+        <div
+          className={`modal fade ${showRemoveModal ? "show d-block" : ""}`}
+          tabIndex="-1"
+          role="dialog"
+        >
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Confirm Delete</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowRemoveModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>
+                  Are you sure you want to delete <b>{modalValue}</b>?
+                </p>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowRemoveModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={async () => {
+                    if (modalType === "item") {
+                      await removeExpenditureItem(selectedId);
+                    }
+                    setShowRemoveModal(false);
+                  }}
+                >
+                  Delete
                 </button>
               </div>
             </div>

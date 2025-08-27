@@ -192,12 +192,13 @@ export const listenAttendance = (uid, month, callback) => {
 };
 
 // --- Items CRUD ---
+// ✅ Add Expenditure Item
 export const addExpenditureItem = (item) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not logged in");
 
-  const itemRef = ref(database, `users/${user.uid}/expenditures/items`);
-  return push(itemRef, {
+  const itemsRef = ref(database, `users/${user.uid}/expenditures/items`);
+  return push(itemsRef, {
     name: item.name,
     category: item.category,
     price: parseFloat(item.price),
@@ -207,32 +208,53 @@ export const addExpenditureItem = (item) => {
   });
 };
 
+// ✅ Update Price & Quantity
 export const updateExpenditureItem = (id, price, quantity) => {
-  const itemRef = ref(database, `expenditures/items/${id}`);
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const itemRef = ref(database, `users/${user.uid}/expenditures/items/${id}`);
   return update(itemRef, {
     price: parseFloat(price),
     quantity: parseInt(quantity),
     total: parseFloat(price) * parseInt(quantity),
+    updatedAt: Date.now(),
   });
 };
 
+// ✅ Update Item Name
 export const updateExpenditureName = (id, newName) => {
-  const itemRef = ref(database, `expenditures/items/${id}`);
-  return update(itemRef, { name: newName });
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const itemRef = ref(database, `users/${user.uid}/expenditures/items/${id}`);
+  return update(itemRef, { name: newName, updatedAt: Date.now() });
 };
 
+// ✅ Update Category
 export const updateExpenditureCategory = (id, newCategory) => {
-  const itemRef = ref(database, `expenditures/items/${id}`);
-  return update(itemRef, { category: newCategory });
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const itemRef = ref(database, `users/${user.uid}/expenditures/items/${id}`);
+  return update(itemRef, { category: newCategory, updatedAt: Date.now() });
 };
 
+// ✅ Remove Item
 export const removeExpenditureItem = (id) => {
-  const itemRef = ref(database, `expenditures/items/${id}`);
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const itemRef = ref(database, `users/${user.uid}/expenditures/items/${id}`);
   return remove(itemRef);
 };
 
+// ✅ Listen to Items (Realtime sync)
 export const listenExpenditureItems = (callback) => {
-  const itemsRef = ref(database, "expenditures/items");
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const itemsRef = ref(database, `users/${user.uid}/expenditures/items`);
   return onValue(itemsRef, (snapshot) => {
     const data = snapshot.val();
     const itemsList = data
@@ -242,7 +264,9 @@ export const listenExpenditureItems = (callback) => {
   });
 };
 
-// ✅ Save Hotel Total (Realtime Database version)
+/* ------------------ HOTEL TOTAL ------------------ */
+
+// ✅ Save Hotel Total (Create or Overwrite)
 export const saveHotelTotal = (month, data) => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not logged in");
@@ -251,5 +275,28 @@ export const saveHotelTotal = (month, data) => {
   return set(totalRef, {
     ...data,
     createdAt: Date.now(),
+  });
+};
+
+// ✅ Update Hotel Total
+export const updateHotelTotal = (month, updatedData) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const totalRef = ref(database, `users/${user.uid}/hotelTotals/${month}`);
+  return update(totalRef, {
+    ...updatedData,
+    updatedAt: Date.now(),
+  });
+};
+
+// ✅ Listen to Hotel Totals (for displaying current & updated values)
+export const listenHotelTotal = (month, callback) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const totalRef = ref(database, `users/${user.uid}/hotelTotals/${month}`);
+  return onValue(totalRef, (snapshot) => {
+    callback(snapshot.val() || null);
   });
 };
