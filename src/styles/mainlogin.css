@@ -1,0 +1,47 @@
+/* Header + Footer */
+.header-bar,
+.footer-bar {
+  background-color: #000;
+}
+
+.header-bar .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-bar .col-4 {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.header-bar .col-4.text-start {
+  justify-content: flex-start;
+}
+
+.header-bar .col-4.text-end {
+  justify-content: flex-end;
+}
+
+.header-bar .col-4:nth-child(2) {
+  justify-content: center;
+}
+
+.logo {
+  height: 50px;
+  width: auto;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: white;
+  margin: 0;
+  text-align: center;
+  transition: color 0.3s ease;
+}
+
+.page-title:hover {
+  color: #ff357a;
+}

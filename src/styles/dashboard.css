@@ -1,0 +1,181 @@
+/* Google Font */
+@import url("https://fonts.googleapis.com/css2?family=Quicksand:wght@300&display=swap");
+
+/* General Reset & Font */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Quicksand", sans-serif;
+}
+
+/* Body & Container */
+body,
+html,
+.dashboard-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #111;
+  color: white;
+}
+
+.dashboard-nav button {
+  min-width: 100px;
+}
+
+.dashboard-nav button:hover {
+  opacity: 0.9;
+}
+
+.card {
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.card-title {
+  font-weight: bold;
+}
+
+.card-text {
+  font-size: 0.9rem;
+}
+
+/* Header */
+.header-bar {
+  background-color: #000;
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.header-bar .profile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.header-bar span {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+/* Logout button */
+.header-bar .btn-danger {
+  font-size: 0.9rem;
+  padding: 5px 10px;
+}
+
+/* Footer */
+.footer-bar {
+  background-color: #000;
+  color: #ccc;
+  padding: 10px 20px;
+}
+
+.footer-bar .logo {
+  height: 50px;
+  width: auto;
+}
+
+.footer-text {
+  font-size: 0.85rem;
+}
+
+/* Main content */
+main {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+/* Add Member Form */
+main div.w-100 {
+  max-width: 400px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+form input,
+form select {
+  padding: 10px 15px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background-color: #222;
+  color: #fff;
+  outline: none;
+}
+
+form button {
+  padding: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.add-member-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.add-member-box,
+.add-designation-box {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.add-member-box h4,
+.add-designation-box h4 {
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.add-expenditure-box {
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  min-width: 250px;
+  max-width: 300px;
+  flex-grow: 1;
+}
+
+.add-expenditure-box h4 {
+  font-weight: 600;
+  margin-bottom: 15px;
+  text-align: center;
+}
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+  .header-bar {
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+  }
+
+  .header-bar .btn-danger {
+    width: 100%;
+  }
+
+  main div.w-100 {
+    max-width: 100%;
+  }
+
+  .footer-bar {
+    text-align: center;
+  }
+}

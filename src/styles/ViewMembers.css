@@ -1,0 +1,33 @@
+/* ViewMembers Styling */
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  font-size: 1.1rem;
+}
+
+.table th,
+.table td {
+  vertical-align: middle !important;
+}
+
+.badge {
+  font-size: 0.8rem;
+  padding: 0.5em 0.7em;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .card-header {
+    font-size: 1rem;
+    text-align: center;
+  }
+  .btn {
+    font-size: 0.9rem;
+  }
+  table {
+    font-size: 0.9rem;
+  }
+}
